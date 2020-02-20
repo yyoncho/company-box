@@ -120,7 +120,17 @@ To change the number of _visible_ chandidates, see `company-tooltip-limit'"
   :type 'integer
   :group 'company-box)
 
-(defcustom company-box-show-single-candidate nil
+(defcustom company-box-tooltip-minimum-width 60
+  "`company-box' minumum width"
+  :type 'integer
+  :group 'company-box)
+
+(defcustom company-box-tooltip-maximum-width 60
+  "`company-box' maximum width"
+  :type 'integer
+  :group 'company-box)
+
+(defcustom company-box-show-single-candidate t
   "Whether or not to display the candidate if there is only one."
   :type 'boolean
   :group 'company-box)
@@ -336,9 +346,7 @@ It doesn't nothing if a font icon is used."
 (defvar-local company-box--edges nil)
 
 (defun company-box--prefix-pos nil
-  (or company-box--prefix-pos
-      (setq company-box--prefix-pos
-            (nth 2 (posn-at-point (- (point) (length company-prefix)))))))
+  (nth 2 (posn-at-point (point))))
 
 (defun company-box--edges nil
   (or company-box--edges
@@ -363,13 +371,11 @@ It doesn't nothing if a font icon is used."
                            (- mode-line-y y))
                       height))
           (height (- height (mod height char-height)))
-          (x (if company-box--with-icons-p
-                 (- p-x (* char-width (if (= company-box--space 2) 2 3)))
-               (- p-x (if (= company-box--space 0) 0 char-width)))))
+          (x p-x))
     ;; Debug
     ;; (message "X+LEFT: %s P-X: %s X: %s LEFT: %s space: %s with-icon: %s LESS: %s"
     ;;          (+ x left) p-x x left company-box--space company-box--with-icons-p (+ (* char-width 3) (/ char-width 2)))
-    (setq company-box--x (+ x left)
+    (setq company-box--x x
           company-box--start (or company-box--start (window-start))
           company-box--height height)
     (set-frame-size frame (company-box--update-width t (/ height char-height))
@@ -488,10 +494,17 @@ It doesn't nothing if a font icon is used."
 (defun company-box-show nil
   (setq company-box--max 0
         company-box--with-icons-p (company-box--with-icons-p))
-  (--> (-take company-box-max-candidates company-candidates)
-       (mapcar (-compose 'company-box--make-line 'company-box--make-candidate) it)
-       (mapconcat 'identity it "\n")
-       (company-box--display it)))
+  (let (kill-buffer-hook)
+    (--> (-take company-box-max-candidates company-candidates)
+         ;; (mapcar (-compose 'company-box--make-line 'company-box--make-candidate) it)
+         (-map-indexed (lambda (index candidate)
+                         (company-fill-propertize
+                          candidate nil company-box-tooltip-minimum-width nil
+                          (company-box--add-icon candidate)
+                          " "))
+                       it)
+         (mapconcat 'identity it "\n")
+         (company-box--display it))))
 
 (defvar company-box-hide-hook nil)
 
@@ -534,8 +547,9 @@ It doesn't nothing if a font icon is used."
           (width (+ (company-box--calc-len (window-buffer window) start end char-width)
                     (if (company-box--scrollbar-p frame) (* 2 char-width) 0)
                     char-width))
-          (width (max (min width max-width)
-                      (* company-tooltip-minimum-width char-width)))
+          (width (max (min width max-width
+                           (* company-box-tooltip-maximum-width char-width))
+                      (* company-box-tooltip-minimum-width char-width)))
           (diff (abs (- (frame-pixel-width frame) width))))
     (or (and no-update width)
         (and (> diff 2) (set-frame-width frame width nil t)))))
