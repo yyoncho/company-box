@@ -372,7 +372,6 @@ It doesn't nothing if a font icon is used."
                                     0))
           (top (+ top window-tab-line-height))
           (char-height (frame-char-height frame))
-          (char-width (frame-char-width frame))
           (height (* (min company-candidates-length company-tooltip-limit) char-height))
           (frame-resize-pixelwise t)
           (mode-line-y (company-box--point-bottom))
