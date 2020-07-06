@@ -30,7 +30,7 @@
 
 (require 'dash)
 
-(eval-when-compile
+(eval-and-compile
   (require 'find-func)
   (require 'subr-x)
   (defconst company-box-icons-dir
@@ -140,7 +140,7 @@
     (Template . ,(company-box-icons-image "netbeans/template.png"))))
 
 (defvar company-box-icons-images
-  (eval-when-compile
+  (eval-and-compile
     `((Unknown . ,(company-box-icons-image "Namespace.png" 14))
       (Text . ,(company-box-icons-image "String.png" 14))
       (Method . ,(company-box-icons-image "Method.png" 14))
@@ -170,7 +170,7 @@
       (Template . ,(company-box-icons-image "Template.png" 14)))))
 
 (defvar company-box-icons-idea
-  (eval-when-compile
+  (eval-and-compile
     `((Unknown . ,(company-box-icons-image "idea/package.png"))
       ;; (Text . ,(company-box-icons-image "idea/misc.png"))
       (Method . ,(company-box-icons-image "idea/method.png"))
